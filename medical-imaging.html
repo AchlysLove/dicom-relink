@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MONAI Label Results - Medical Imaging Interface</title>
+
+  <!-- Google Fonts: Inter and Space Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* CSS Variables - Atom One Light Palette */
+    :root {
+      /* Backgrounds */
+      --bg-page: #FFFFFF;
+      --bg-surface: #FAFAFA;
+
+      /* Text */
+      --text-primary: #0D0D0D;
+      --text-secondary: #7A7A7A;
+
+      /* Borders */
+      --border-color: #E8E8E8;
+
+      /* Accents */
+      --accent-red: #E42313;
+
+      /* Spacing */
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 12px;
+      --spacing-lg: 16px;
+      --spacing-xl: 24px;
+
+      /* Typography */
+      --font-display: 'Inter', sans-serif;
+      --font-mono: 'Space Mono', monospace;
+    }
+
+    /* Reset & Base Styles */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-display);
+      background: var(--bg-page);
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+
+    /* Main App Container */
+    .app-container {
+      display: flex;
+      width: 1440px;
+      max-width: 100%;
+      height: 900px;
+      margin: 0 auto;
+      background: var(--bg-page);
+    }
+
+    /* ========== SIDEBAR ========== */
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border-color);
+      padding: var(--spacing-md);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Dataset Header */
+    .dataset-header h1 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    /* Sidebar Section */
+    .sidebar-section {
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    /* Filter Items */
+    .filter-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      height: 36px;
+      padding: 0 var(--spacing-md);
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .filter-item:hover {
+      background: var(--bg-surface);
+    }
+
+    .checkbox {
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .checkbox.checked {
+      background: var(--accent-red);
+      border-color: var(--accent-red);
+    }
+
+    .filter-item span,
+    .sample-item {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 400;
+    }
+
+    .filter-item.active span {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    .filter-item:not(.active) span {
+      color: var(--text-secondary);
+    }
+
+    /* Sample Items */
+    .sample-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      height: 36px;
+      padding: 0 var(--spacing-md);
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .sample-item:hover {
+      background: var(--bg-surface);
+    }
+
+    .sample-item.active {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    .sample-item:not(.active) {
+      color: var(--text-secondary);
+    }
+
+    /* ========== MAIN CONTENT ========== */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: var(--spacing-md);
+      gap: var(--spacing-md);
+      min-width: 0;
+    }
+
+    /* Header Bar */
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      height: 64px;
+      padding: 0 var(--spacing-md);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Header Upload Button */
+    .header-upload-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: 0 var(--spacing-md);
+      height: 40px;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      background: transparent;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .header-upload-btn:hover {
+      background: var(--bg-surface);
+    }
+
+    .header-upload-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ========== VIEWER CONTAINER ========== */
+    .viewer-container {
+      display: flex;
+      flex: 1;
+      gap: var(--spacing-md);
+      min-height: 0;
+    }
+
+    /* Viewer Halves */
+    .viewer-half {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .viewer-half-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+      min-width: 0;
+    }
+
+    /* ========== SLICE VIEW ========== */
+    .slice-view {
+      border: 1px solid var(--border-color);
+      padding: var(--spacing-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .slice-view.slice-axial,
+    .slice-view.slice-sagittal,
+    .slice-view.slice-coronal {
+      flex: 1;
+      min-height: 0;
+    }
+
+    .slice-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .slice-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .slice-info {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .slice-viewer {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-surface);
+      padding: var(--spacing-sm);
+      min-height: 0;
+    }
+
+    /* Medical Image Placeholder */
+    .medical-image-placeholder {
+      width: 200px;
+      height: 200px;
+      min-width: 200px;
+      min-height: 200px;
+      background: var(--bg-page);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .crosshair-h,
+    .crosshair-v {
+      position: absolute;
+      background: var(--accent-red);
+    }
+
+    .crosshair-h {
+      width: 200px;
+      height: 2px;
+    }
+
+    .crosshair-v {
+      width: 2px;
+      height: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <!-- Dataset Header -->
+      <div class="dataset-header">
+        <h1>XNAT Heart</h1>
+      </div>
+
+      <!-- Filters Section -->
+      <section class="sidebar-section">
+        <h2 class="section-label">FILTERS</h2>
+        <div class="filter-item active">
+          <div class="checkbox checked"></div>
+          <span>Train Split</span>
+        </div>
+        <div class="filter-item">
+          <div class="checkbox"></div>
+          <span>Test Split</span>
+        </div>
+      </section>
+
+      <!-- Samples Section -->
+      <section class="sidebar-section">
+        <h2 class="section-label">SAMPLES</h2>
+        <div class="sample-item active">sample_01</div>
+        <div class="sample-item">sample_02</div>
+        <div class="sample-item">sample_03</div>
+        <div class="sample-item">sample_04</div>
+        <div class="sample-item">sample_05</div>
+      </section>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header Bar -->
+      <header class="header-bar">
+        <h1 class="header-title">sample_01_results</h1>
+        <button class="header-upload-btn">
+          Upload
+        </button>
+      </header>
+
+      <!-- Viewer Container -->
+      <div class="viewer-container">
+        <!-- Left Half: Axial View -->
+        <div class="viewer-half viewer-half-left">
+          <div class="slice-view slice-axial">
+            <div class="slice-header">
+              <span class="slice-label">AXIAL</span>
+              <span class="slice-info">128 / 256</span>
+            </div>
+            <div class="slice-viewer">
+              <div class="medical-image-placeholder">
+                <div class="crosshair-h"></div>
+                <div class="crosshair-v"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Half: Sagittal + Coronal Views -->
+        <div class="viewer-half viewer-half-right">
+          <!-- Sagittal View -->
+          <div class="slice-view slice-sagittal">
+            <div class="slice-header">
+              <span class="slice-label">SAGITTAL</span>
+              <span class="slice-info">64 / 256</span>
+            </div>
+            <div class="slice-viewer">
+              <div class="medical-image-placeholder">
+                <div class="crosshair-h"></div>
+                <div class="crosshair-v"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Coronal View -->
+          <div class="slice-view slice-coronal">
+            <div class="slice-header">
+              <span class="slice-label">CORONAL</span>
+              <span class="slice-info">92 / 256</span>
+            </div>
+            <div class="slice-viewer">
+              <div class="medical-image-placeholder">
+                <div class="crosshair-h"></div>
+                <div class="crosshair-v"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
